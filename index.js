@@ -114,13 +114,12 @@ function pollForChanges () {
             , current = this.currentState[deviceName]
 
           if (!current) {
-            current = { audioDetected: status.audioDetected, motionDetected: status.motionDetected }
+            current = { audioDetected: 'no', motionDetected: 'no' }
           }
 
-          emitEvents.call(this, current, status, deviceName)
+          emitEvents.call(this, current, status, deviceName, 'audioDetected')
+          emitEvents.call(this, current, status, deviceName, 'motionDetected')
 
-          current.audioDetected = status.audioDetected
-          current.motionDetected = status.motionDetected
           current.recording = status.state !== 'idle'
           this.currentState[deviceName] = current
           cb()
@@ -130,20 +129,22 @@ function pollForChanges () {
   }.bind(this), this.config.pollInterval || 1000)
 }
 
-function emitEvents (current, status, deviceName) {
-  var audioDetectedChanged = current.audioDetected !== status.audioDetected
-    , motionDetectedChanged = current.motionDetected !== status.motionDetected
+function emitEvents (current, status, deviceName, property) {
+  var now = (new Date()).getTime()
+    , changed = current[property] !== status[property]
+    , timeoutReached = !current[property + 'Start'] || now - current[property + 'Start'] >= 5000
 
-  if (audioDetectedChanged && status.audioDetected === 'yes') {
-    this.emit(deviceName + ':' + 'audioDetected:start')
-  } else if (audioDetectedChanged && status.audioDetected === 'no') {
-    this.emit(deviceName + ':' + 'audioDetected:stop')
+  if (changed && status[property] === 'yes' && timeoutReached) {
+    this.emit(deviceName + ':' + property + ':start')
+    current[property] = status[property]
+  } else if (changed && status[property] === 'no' && timeoutReached) {
+    this.emit(deviceName + ':' + property + ':stop')
+    current[property] = status[property]
+    current[property + 'Start'] = null
   }
 
-  if (motionDetectedChanged && status.motionDetected === 'yes') {
-    this.emit(deviceName + ':' + 'motionDetected:start')
-  } else if (motionDetectedChanged && status.motionDetected === 'no') {
-    this.emit(deviceName + ':' + 'motionDetected:stop')
+  if (status[property] === 'yes') {
+    current[property + 'Start'] = (new Date()).getTime()
   }
 }
 
