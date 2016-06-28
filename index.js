@@ -120,8 +120,8 @@ function pollForChanges () {
           emitEvents.call(this, current, status, deviceName, 'audioDetected')
           emitEvents.call(this, current, status, deviceName, 'motionDetected')
 
-          this.emit(deviceName + ':' + 'audioLevel' + ':update', status.audioLevel)
-          this.emit(deviceName + ':' + 'motionLevel' + ':update', status.motionLevel)
+          this.emit(deviceName + ':' + 'audioLevel' + ':update', (parseFloat(status.audioLevel, 10) * 100).toFixed(2))
+          this.emit(deviceName + ':' + 'motionLevel' + ':update', (parseFloat(status.motionLevel, 10) * 100).toFixed(2))
 
           current.recording = status.state !== 'idle'
           this.currentState[deviceName] = current
