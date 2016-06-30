@@ -117,8 +117,8 @@ function pollForChanges () {
             current = { audioDetected: 'no', motionDetected: 'no' }
           }
 
-          emitEvents.call(this, current, status, deviceName, 'audioDetected')
-          emitEvents.call(this, current, status, deviceName, 'motionDetected')
+          emitEvents.call(this, current, status, deviceName, 'audioDetected', 'audioLevel')
+          emitEvents.call(this, current, status, deviceName, 'motionDetected', 'motionLevel')
 
           this.emit(deviceName + ':' + 'audioLevel' + ':update', (parseFloat(status.audioLevel, 10) * 100).toFixed(2))
           this.emit(deviceName + ':' + 'motionLevel' + ':update', (parseFloat(status.motionLevel, 10) * 100).toFixed(2))
@@ -132,16 +132,16 @@ function pollForChanges () {
   }.bind(this), this.config.pollInterval || 1000)
 }
 
-function emitEvents (current, status, deviceName, property) {
+function emitEvents (current, status, deviceName, property, valueProperty) {
   var now = (new Date()).getTime()
     , changed = current[property] !== status[property]
     , timeoutReached = !current[property + 'Start'] || now - current[property + 'Start'] >= 5000
 
   if (changed && status[property] === 'yes' && timeoutReached) {
-    this.emit(deviceName + ':' + property + ':start')
+    this.emit(deviceName + ':' + property + ':start', (parseFloat(status[valueProperty], 10) * 100).toFixed(2))
     current[property] = status[property]
   } else if (changed && status[property] === 'no' && timeoutReached) {
-    this.emit(deviceName + ':' + property + ':stop')
+    this.emit(deviceName + ':' + property + ':stop', '0')
     current[property] = status[property]
     current[property + 'Start'] = null
   }
