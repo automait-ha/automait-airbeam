@@ -51,7 +51,7 @@ AirBeam.prototype.flashLight = function (deviceName, cb) {
 AirBeam.prototype.isRecording = function (deviceName, cb) {
   var device = this.config.devices[deviceName]
   if (!device) return cb(null, false)
-  cb(null, this.currentState[deviceName].recording)
+  cb(null, this.currentState[deviceName] && this.currentState[deviceName].recording)
 }
 
 AirBeam.prototype.startMotionRecorder = function (deviceName, cb) {
